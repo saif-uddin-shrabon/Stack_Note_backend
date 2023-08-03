@@ -171,34 +171,72 @@ async function run() {
 
 
         //create note post
-        app.post('/createNotePost', async (req, res) => {
-            const {data} = req.body;
-            data.createDt = new Date();
-            data.updateDt = new Date();
+        // app.post('/createNotePost', async (req, res) => {
+        //     const {data} = req.body;
+        //     data.createDt = new Date();
+        //     data.updateDt = new Date();
        
     
-        try{
-            const result = await notePostCollection.insertOne(data);
+        // try{
+        //     const result = await notePostCollection.insertOne(data);
             
-            res.json({
-                status: 200,
-                data: result
-            })
+        //     res.json({
+        //         status: 200,
+        //         data: result
+        //     })
     
-        }catch(err){
+        // }catch(err){
     
-            res.json({
-                status: 200,
-                message: "Internal Server Error"
-            })
+        //     res.json({
+        //         status: 200,
+        //         message: "Internal Server Error"
+        //     })
     
-        }
+        // }
     
-        })
+        // })
+        // create note post
+        app.post('/createNotePost', verifyJWT, async (req, res) => {
+            const { data } = req.body;
+        
+            // Check if data exists and is an object
+            if (!data || typeof data !== 'object') {
+                return res.status(400).json({ status: 400, message: "Invalid data format" });
+            }
+        
+            // Extract the user ID from the decoded token in the request
+            const userId = req.user.userId;
+        
+            // Check if the required properties are present
+            if (!userId || !data.title || !data.Description) {
+                return res.status(400).json({ status: 400, message: "Invalid data format. Missing required properties." });
+            }
+        
+            // Add the 'createDt' and 'updateDt' properties to the 'data' object
+            data.createDt = new Date();
+            data.updateDt = new Date();
+            data.userId = userId; // Associate the user ID with the note post
+        
+            try {
+                const result = await notePostCollection.insertOne(data);
+                res.json({
+                    status: 200,
+                    data: result
+                });
+            } catch (err) {
+                res.status(500).json({
+                    status: 500,
+                    message: "Internal Server Error"
+                });
+            }
+        });
+        
+
+
 
         // get all posts
 
-        app.get('/getAllNotePost', async(req,res)=>{
+        app.get('/getAllNotePost', verifyJWT, async(req,res)=>{
             try{
                 const result = await notePostCollection.find().toArray();
 
