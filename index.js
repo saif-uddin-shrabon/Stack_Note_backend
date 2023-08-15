@@ -1,9 +1,11 @@
-const express = require("express");
-const cors = require('cors');
+const express = require("express");   // npm install express
+const cors = require('cors');  // npm install cors
 const app = express();
+
 const port = process.env.PORT || 5000 ;
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const jwt = require('jsonwebtoken');
+const { ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken'); // npm install jsonwebtoken
 require('dotenv').config()
 
 
@@ -252,6 +254,78 @@ async function run() {
                 })
             }
         })
+
+// update note post
+app.put('/updateNotePost/:id', verifyJWT, async (req, res) => {
+    const { id } = req.params;
+    const query = { _id: new ObjectId(id) };
+    const { data } = req.body;
+
+    try {
+        // You need to use ObjectId to match the id in the collection
+        const getSinglePost = await notePostCollection.findOne(query);
+        if (!getSinglePost) {
+            return res.json({
+                status: 404,
+                message: "Note not found"
+            });
+        }
+
+        const updateQuery = {}; // Initialize the update query object
+
+        // Check and update title and description
+        if (data.title) updateQuery.title = data.title;
+        if (data.Description) updateQuery.Description = data.Description;
+
+        // Update the updateDt field
+        updateQuery.updateDt = new Date();
+
+        // Perform the update
+        const result = await notePostCollection.updateOne(query, { $set: updateQuery });
+
+        res.json({
+            status: 200,
+            data: result
+        });
+    } catch (err) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error"
+        });
+    }
+});
+
+// delete note post
+app.delete('/deleteNotePost/:id', verifyJWT, async (req, res) => {
+    const { id } = req.params;
+    const query = { _id: new ObjectId(id) };
+
+    try {
+        // You need to use ObjectId to match the id in the collection
+        const getSinglePost = await notePostCollection.findOne(query);
+        if (!getSinglePost) {
+            return res.json({
+                status: 404,
+                message: "Note not found"
+            });
+        }
+
+        const result = await notePostCollection.deleteOne(query);
+
+        res.json({
+            status: 200,
+            data: result
+        });
+        
+    } catch (err) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error"
+        });
+    }
+
+
+});
 
 
 
