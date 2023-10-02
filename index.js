@@ -37,28 +37,15 @@ function verifyJWT(req, res, next) {
 
 // Generate JWT token function
 function generateToken(payload) {
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }); // Set the expiration time as desired
+    return jwt.sign(payload, process.env.JWT_SECRET); // Set the expiration time as desired
 }
 
 
 
-// app.use(cors({
-//     origin: '*',
-//     allowedHeaders: ['Content-Type', 'Authorization']
-//   }));
-//   app.use(express.json()); // Use express.json() as a built-in middleware
-  
-//   app.listen(port, '0.0.0.0');
-
-// app.use(cors());
-// app.use(express.json()); // Use express.json() as a built-in middleware
 
 
 
-
-
-
-const uri = "mongodb+srv://StackNote:BKeBBAt0GTNlBTda@cluster0.ny2vrds.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ny2vrds.mongodb.net/?retryWrites=true&w=majority`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -90,6 +77,9 @@ async function run() {
             //  token: uuidv4()
             };
 
+            
+       
+
         
         try{
             const result = await userCollection.insertOne(query);
@@ -99,9 +89,12 @@ async function run() {
                     message: 'user not found'
                 })
             }else{
+                  // Generate and send JWT token in the response
+              const token = generateToken({ userId: result._id }); // Include any additional data you want in the payload
                 res.json({
                     status: 200,
-                    data: result
+                    data: result,
+                    token: token
                 })
             }
         }
