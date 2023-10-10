@@ -232,8 +232,11 @@ async function run() {
         // get all posts
 
         app.get('/getAllNotePost', verifyJWT, async(req,res)=>{
+            const userId = req.user.userId; 
+         
             try{
-                const result = await notePostCollection.find().toArray();
+                const query = { userId: userId };
+                const result = await notePostCollection.find(query).toArray();
 
                 res.json({
                     status: 200,
@@ -247,6 +250,9 @@ async function run() {
                 })
             }
         })
+
+       
+
 
 // update note post
 app.put('/updateNotePost/:id', verifyJWT, async (req, res) => {
